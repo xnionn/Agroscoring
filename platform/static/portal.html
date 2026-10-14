@@ -1,0 +1,935 @@
+<!DOCTYPE html>
+<html lang="ru" translate="no">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Портал фермера — Система AgrIscore</title>
+    <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+    <nav class="navbar">
+        <a href="/" class="navbar-brand"><span><span class="brand-accent">A</span>gr<span class="brand-accent">I</span>score</span></a>
+        <div class="navbar-links" style="display: flex; align-items: center; gap: 12px;">
+            <button class="btn btn-outline btn-sm" onclick="toggleMyAppsModal()" style="border-color: rgba(255,255,255,0.2); padding: 4px 12px; font-size: 0.8rem;">📁 Мои заявки</button>
+            <span class="navbar-user" id="navUser" style="cursor:pointer;" onclick="goStep(1)" title="Перейти в профиль">👤</span>
+            <button onclick="logout()">Выйти</button>
+        </div>
+    </nav>
+
+    <div class="page-wrapper">
+        <div class="container">
+            <div class="page-header animate-in">
+                <h1>Портал фермера</h1>
+                <p class="subtitle">Управляйте профилем фермы и подавайте заявки на субсидии</p>
+            </div>
+
+            <!-- Steps -->
+            <div class="steps animate-in delay-1">
+                <div class="step active" id="step1" onclick="goStep(1)">
+                    <div class="step-num">1</div>
+                    <span class="step-text">Профиль фермы</span>
+                </div>
+                <div class="step" id="step2" onclick="goStep(2)" style="display: none;">
+                    <div class="step-num">2</div>
+                    <span class="step-text">Заявка на субсидию</span>
+                </div>
+                <div class="step" id="step3" style="display: none;">
+                    <div class="step-num">3</div>
+                    <span class="step-text">Результат</span>
+                </div>
+            </div>
+
+            <!-- STEP 1: Profile -->
+            <div id="panel1" class="card animate-in delay-2">
+                <h3 style="margin-bottom: 24px;">Информация о ферме</h3>
+                <form id="profileForm" onsubmit="saveProfile(event)">
+                    <div class="grid-2 mb-md">
+                        <div class="form-group">
+                            <label>ИИН (необязательно)</label>
+                            <input type="text" class="form-input" id="profIin" placeholder="123456789012">
+                        </div>
+                        <div class="form-group">
+                            <label>Телефон</label>
+                            <input type="text" class="form-input" id="profPhone" placeholder="+7 700 123 45 67">
+                        </div>
+                    </div>
+                    <div class="form-group mb-md">
+                        <label>Название фермы</label>
+                        <input type="text" class="form-input" id="profFarmName" placeholder="КХ «Асылбек»">
+                    </div>
+                    <div class="grid-2 mb-md">
+                        <div class="form-group">
+                            <label>Регион *</label>
+                            <select class="form-select" id="profRegion" required></select>
+                        </div>
+                        <div class="form-group">
+                            <label>Район</label>
+                            <input type="text" class="form-input" id="profDistrict" placeholder="Район">
+                        </div>
+                    </div>
+                    <div class="grid-3 mb-md">
+                        <div class="form-group">
+                            <label>Направление</label>
+                            <select class="form-select" id="profDirection"></select>
+                        </div>
+                        <div class="form-group">
+                            <label id="profHeadsLabel">Поголовье (голов)</label>
+                            <input type="number" class="form-input" id="profHeads" placeholder="150" min="0">
+                        </div>
+                        <div class="form-group">
+                            <label>Лет в сельхозе</label>
+                            <input type="number" class="form-input" id="profYears" placeholder="5" min="0">
+                        </div>
+                    </div>
+                    <div class="grid-3 mb-md">
+                        <div class="form-group">
+                            <label>Общая площадь земли (га)</label>
+                            <input type="number" class="form-input" id="profLand" placeholder="25" min="0" step="any">
+                        </div>
+                        <div class="form-group">
+                            <label>Годовая выручка (тг)</label>
+                            <input type="number" class="form-input" id="profRevenue" placeholder="15000000" min="0" step="any">
+                        </div>
+                        <div class="form-group">
+                            <label>Количество работников</label>
+                            <input type="number" class="form-input" id="profEmployees" placeholder="4" min="0">
+                        </div>
+                    </div>
+                    <div class="grid-3 mb-md">
+                        <div class="form-group">
+                            <label>Собственная земля (га)</label>
+                            <input type="number" class="form-input" id="profOwnedLand" placeholder="10" min="0" step="any">
+                        </div>
+                        <div class="form-group">
+                            <label>Арендуемая земля (га)</label>
+                            <input type="number" class="form-input" id="profLeasedLand" placeholder="15" min="0" step="any">
+                        </div>
+                        <div class="form-group">
+                            <label>Остаток аренды (лет)</label>
+                            <input type="number" class="form-input" id="profLeaseYears" placeholder="3" min="0">
+                        </div>
+                    </div>
+                    <div class="mb-md" style="background: var(--bg-input); padding: 16px; border-radius: 12px;">
+                        <div class="label" style="margin-bottom: 12px;">Ресурсы и дисциплина хозяйства</div>
+                        <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 12px;">
+                            <label style="display:flex; gap:8px; align-items:center;"><input type="checkbox" id="profFacility"> Есть помещения/база</label>
+                            <label style="display:flex; gap:8px; align-items:center;"><input type="checkbox" id="profFeedBase"> Есть кормовая база</label>
+                            <label style="display:flex; gap:8px; align-items:center;"><input type="checkbox" id="profEquipment"> Есть техника/оборудование</label>
+                            <label style="display:flex; gap:8px; align-items:center;"><input type="checkbox" id="profSalesContracts"> Есть договоры сбыта</label>
+                            <label style="display:flex; gap:8px; align-items:center;"><input type="checkbox" id="profTaxDebt"> Есть налоговая задолженность</label>
+                            <label style="display:flex; gap:8px; align-items:center;"><input type="checkbox" id="profOverdueLoans"> Есть просроченные кредиты/займы</label>
+                        </div>
+                    </div>
+                    <button type="submit" class="btn btn-primary" id="profileSaveBtn">Сохранить профиль и продолжить →</button>
+                    <p id="profileMsg" style="margin-top:12px; font-size:0.85rem;"></p>
+                </form>
+            </div>
+
+            <!-- STEP 2: Application -->
+            <div id="panel2" class="card hidden">
+                <h3 style="margin-bottom: 24px;">Заявка на субсидию</h3>
+                <form id="appForm" onsubmit="submitApp(event)">
+                    <div class="form-group mb-md">
+                        <label>Направление субсидии *</label>
+                        <select class="form-select" id="appDirection" required></select>
+                    </div>
+                    <div class="form-group mb-md">
+                        <label>Наименование субсидии *</label>
+                        <select class="form-select" id="appSubsidyName" required></select>
+                    </div>
+                    <div class="grid-2 mb-md">
+                        <div class="form-group">
+                            <label>Сумма субсидии (тенге) *</label>
+                            <input type="number" class="form-input" id="appAmount" placeholder="5000000" required min="1" step="any">
+                        </div>
+                        <div class="form-group">
+                            <label id="appNormLabel">Норматив на голову (тенге) *</label>
+                            <input type="number" class="form-input" id="appNorm" placeholder="20000" required min="1" step="any">
+                        </div>
+                    </div>
+                    <div class="grid-3 mb-md">
+                        <div class="form-group">
+                            <label>Софинансирование (%)</label>
+                            <input type="number" class="form-input" id="appOwnContribution" placeholder="10" min="0" max="100" step="any">
+                        </div>
+                        <div class="form-group">
+                            <label>Срок исполнения (мес.)</label>
+                            <input type="number" class="form-input" id="appExecutionMonths" placeholder="12" min="1" max="60">
+                        </div>
+                        <div class="form-group" style="display:flex; align-items:flex-end;">
+                            <label style="display:flex; gap:8px; align-items:center; margin-bottom:10px;"><input type="checkbox" id="appHasDocs"> Есть подтверждающие документы</label>
+                        </div>
+                    </div>
+                    <div class="grid-2 mb-md">
+                        <div class="form-group">
+                            <label>Сколько раз получали субсидии раньше</label>
+                            <input type="number" class="form-input" id="appPrevSubsidies" placeholder="0" min="0">
+                        </div>
+                        <div class="form-group" style="display:flex; align-items:flex-end;">
+                            <label style="display:flex; gap:8px; align-items:center; margin-bottom:10px;"><input type="checkbox" id="appClosedProperly"> Прошлые субсидии закрыты корректно</label>
+                        </div>
+                    </div>
+                    <div class="grid-3 mb-md">
+                        <div class="form-group">
+                            <label>Возвраты по субсидиям</label>
+                            <input type="number" class="form-input" id="appPrevReturns" placeholder="0" min="0">
+                        </div>
+                        <div class="form-group">
+                            <label>Нарушения условий</label>
+                            <input type="number" class="form-input" id="appPrevViolations" placeholder="0" min="0">
+                        </div>
+                        <div class="form-group">
+                            <label>Просрочки отчётности</label>
+                            <input type="number" class="form-input" id="appPrevOverdueReports" placeholder="0" min="0">
+                        </div>
+                    </div>
+                    <div class="form-group mb-md">
+                        <label>Цель заявки</label>
+                        <textarea class="form-input" id="appPurpose" rows="3" placeholder="Опишите, на что конкретно будут направлены средства и какой результат ожидается"></textarea>
+                    </div>
+                    <div class="form-group mb-md">
+                        <label>Дополнительные пояснения / пожелания</label>
+                        <textarea class="form-input" id="appExtraContext" rows="4" placeholder="Здесь фермер может указать дополнительные обстоятельства. ИИ даст короткий комментарий по этому тексту, но он не влияет напрямую на балл."></textarea>
+                    </div>
+                    <div style="background: var(--bg-input); padding: 16px; border-radius: 10px; margin-bottom: 20px;">
+                        <span class="label" id="calcHeadsLabel">Расчётное поголовье:</span>
+                        <strong id="calcHeads" style="margin-left: 8px; font-size: 1.1rem;">—</strong> <span id="calcHeadsUnit">голов</span>
+                    </div>
+                    <div style="display: flex; gap: 16px; align-items: center; margin-top: 24px; flex-wrap: wrap;">
+                        <button type="submit" class="btn btn-primary" id="appSubmitBtn">Отправить на скоринг</button>
+                        <button type="button" class="btn btn-outline" onclick="toggleCalcModal()" style="color: var(--text-muted); border-color: rgba(255,255,255,0.1); font-size: 0.85rem; padding: 10px 16px;">ℹ️ Как работает AgrIscore?</button>
+                    </div>
+                    <p id="appMsg" style="margin-top:12px; font-size:0.85rem;"></p>
+                </form>
+            </div>
+
+            <!-- STEP 3: Result -->
+            <div id="panel3" class="hidden">
+                <div class="grid-2" style="gap: 24px;">
+                    <!-- Score gauge -->
+                    <div class="card text-center">
+                        <h3 style="margin-bottom: 20px;">Composite Score</h3>
+                        <div class="score-gauge">
+                            <svg viewBox="0 0 120 120">
+                                <circle class="score-gauge-bg" cx="60" cy="60" r="50"></circle>
+                                <circle class="score-gauge-fill" id="gaugeCircle" cx="60" cy="60" r="50"
+                                    stroke-dasharray="314" stroke-dashoffset="314"></circle>
+                            </svg>
+                            <div class="score-gauge-text">
+                                <div class="score-gauge-value" id="scoreValue">—</div>
+                                <div class="score-gauge-label" id="scoreTier">—</div>
+                            </div>
+                        </div>
+                        <div style="margin-top: 20px;">
+                            <span class="tier-badge" id="tierBadge">—</span>
+                        </div>
+                        <!-- Premium Score Breakdown -->
+                        <div style="margin-top: 32px; text-align: left; padding: 20px; background: rgba(0,0,0,0.15); border-radius: 16px; border: 1px solid rgba(255,255,255,0.05); box-shadow: inset 0 2px 10px rgba(0,0,0,0.2);">
+                            <div class="flex justify-between items-center" style="margin-bottom: 20px; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 8px;">
+                                <div class="label" style="font-size: 0.75rem; letter-spacing: 1.2px; color: var(--text-muted);">ИНДЕКСЫ АНАЛИЗА</div>
+                                <button onclick="toggleCalcModal()" class="btn btn-outline btn-sm" style="padding: 4px 10px; font-size: 0.7rem; color: var(--text-muted); border-color: rgba(255,255,255,0.1); display: flex; align-items: center; gap: 4px;">ℹ️ Как это работает (FAQ)</button>
+                            </div>
+                            
+                            <div style="margin-bottom: 16px;">
+                                <div class="flex justify-between items-center mb-sm">
+                                    <div style="display: flex; flex-direction: column;">
+                                        <span style="font-weight: 600; font-size: 0.95rem; color: #fff;">ML Prediction</span>
+                                        <span style="font-size: 0.70rem; color: var(--text-muted); margin-top: 2px;">Вес: 50% | Модель: XGBoost</span>
+                                    </div>
+                                    <strong id="mlScoreVal" style="font-size: 1.1rem; color: #10b981; text-shadow: 0 0 8px rgba(16,185,129,0.3);">—</strong>
+                                </div>
+                                <div style="font-size: 0.75rem; color: rgba(255,255,255,0.5); line-height: 1.4;">
+                                    ИИ оценивает вероятность одобрения заявки, обучаясь на тысячах исторических решениях комиссии МСХ.
+                                </div>
+                            </div>
+
+                            <hr style="border:none; border-top:1px dashed rgba(255,255,255,0.1); margin: 16px 0;">
+
+                            <div style="margin-bottom: 16px;">
+                                <div class="flex justify-between items-center mb-sm">
+                                    <div style="display: flex; flex-direction: column;">
+                                        <span style="font-weight: 600; font-size: 0.95rem; color: #fff;">Rule Compliance</span>
+                                        <span style="font-size: 0.70rem; color: var(--text-muted); margin-top: 2px;">Вес: 30% | База правил</span>
+                                    </div>
+                                    <strong id="ruleScoreVal" style="font-size: 1.1rem; color: #3b82f6; text-shadow: 0 0 8px rgba(59,130,246,0.3);">—</strong>
+                                </div>
+                                <div style="font-size: 0.75rem; color: rgba(255,255,255,0.5); line-height: 1.4;">
+                                    Детерминированная проверка. Оценивает жёсткое соответствие заявки базовым требованиям, бюджетам и нормативам.
+                                </div>
+                            </div>
+
+                            <hr style="border:none; border-top:1px dashed rgba(255,255,255,0.1); margin: 16px 0;">
+
+                            <div>
+                                <div class="flex justify-between items-center mb-sm">
+                                    <div style="display: flex; flex-direction: column;">
+                                        <span style="font-weight: 600; font-size: 0.95rem; color: #fff;">Anomaly Detection</span>
+                                        <span style="font-size: 0.70rem; color: var(--text-muted); margin-top: 2px;">Вес: 20% | Isolation Forest</span>
+                                    </div>
+                                    <strong id="anomalyVal" style="font-size: 0.95rem;">—</strong>
+                                </div>
+                                <div style="font-size: 0.75rem; color: rgba(255,255,255,0.5); line-height: 1.4;">
+                                    Неконтролируемая ML-модель выявляет подозрительные отклонения или признаки фрода, снижая скор в случае аномалий.
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- SHAP + Rules -->
+                    <div style="display:flex; flex-direction:column; gap:24px;">
+                        <div class="card">
+                            <h3 style="margin-bottom: 16px;">Почему такой скор?</h3>
+                            <p class="subtitle" style="font-size:0.85rem; margin-bottom:16px;">
+                                Топ-5 факторов, повлиявших на оценку (SHAP)
+                            </p>
+                            <div class="shap-bar-container" id="shapBars">
+                                <!-- filled by JS -->
+                            </div>
+                        </div>
+                        <div class="card">
+                            <h3 style="margin-bottom: 16px;">Проверка правил</h3>
+                            <div id="rulesChecklist">
+                                <!-- filled by JS -->
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card mt-lg" style="text-align:center; padding:32px;">
+                    <p style="font-size:1.1rem;">Ваша заявка отправлена на рассмотрение комиссии</p>
+                    <p class="subtitle mt-sm">Статус: <strong style="color: var(--yellow);">На рассмотрении</strong></p>
+                    <div style="margin-top:24px; display:flex; gap:12px; justify-content:center;">
+                        <button class="btn btn-primary" onclick="goStep(2)">Подать ещё заявку</button>
+                        <button class="btn btn-outline" onclick="showMyApps()">Мои заявки</button>
+                    </div>
+                </div>
+
+                <!-- Duplicate modal removed -->
+            </div>
+        </div>
+    </div>
+
+    <!-- Обновленный модал "Как это работает" -->
+    <div id="calcModal" class="modal" onclick="if(event.target===this) toggleCalcModal()">
+        <div class="modal-content animate-in zoom" style="max-width: 550px; padding: 32px;">
+            <div class="modal-header" style="border-bottom: 1px solid var(--border); padding-bottom: 16px; margin-bottom: 24px;">
+                <h2 style="font-size: 1.2rem; margin: 0;">Как работает AgrIscore?</h2>
+                <button class="modal-close" onclick="toggleCalcModal()">✕</button>
+            </div>
+            <div class="modal-body" style="text-align: left;">
+                
+                <div style="margin-bottom: 28px;">
+                    <h3 style="font-size: 1rem; color: #fff; margin-bottom: 8px; display: flex; align-items: center; gap: 8px;">
+                        <span style="font-size:1.2rem;">🤖</span> Что такое Composite Score?
+                    </h3>
+                    <p style="font-size: 0.9rem; color: var(--text-muted); line-height: 1.5;">
+                        Это единый рейтинг заявки от 0 до 100. Он определяет приоритет на получение субсидий. 
+                        Скор складывается из трёх независимых моделей оценки, исключая человеческий фактор.
+                    </p>
+                </div>
+
+                <div style="border-left: 2px solid var(--border); padding-left: 20px; margin-left: 8px; display: flex; flex-direction: column; gap: 24px;">
+                    
+                    <div style="position: relative;">
+                        <div style="position: absolute; left: -25px; top: 2px; width: 8px; height: 8px; border-radius: 50%; background: #10b981;"></div>
+                        <div style="font-size: 0.70rem; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 4px;">Этап 1 • Вес: 50%</div>
+                        <h4 style="font-size: 0.95rem; color: #fff; margin-bottom: 6px;">Предиктивная AI-модель</h4>
+                        <p style="font-size: 0.85rem; color: var(--text-muted); line-height: 1.4;">
+                            Обучена на исторических ссесиях МСХ РК. Анализирует регион, направление и запрашиваемые суммы фермера. Предсказывает вероятность целевого использования.
+                        </p>
+                    </div>
+
+                    <div style="position: relative;">
+                        <div style="position: absolute; left: -25px; top: 2px; width: 8px; height: 8px; border-radius: 50%; background: #3b82f6;"></div>
+                        <div style="font-size: 0.70rem; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 4px;">Этап 2 • Вес: 30%</div>
+                        <h4 style="font-size: 0.95rem; color: #fff; margin-bottom: 6px;">Нормативный контроль</h4>
+                        <p style="font-size: 0.85rem; color: var(--text-muted); line-height: 1.4;">
+                            Жесткая проверка соответствия: не превышает ли сумма лимиты, реалистично ли количество голов поголовья для указанной фермы.
+                        </p>
+                    </div>
+
+                    <div style="position: relative;">
+                        <div style="position: absolute; left: -25px; top: 2px; width: 8px; height: 8px; border-radius: 50%; background: #ef4444;"></div>
+                        <div style="font-size: 0.70rem; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 4px;">Этап 3 • Вес: 20%</div>
+                        <h4 style="font-size: 0.95rem; color: #fff; margin-bottom: 6px;">Детекция аномалий (Анти-Фрод)</h4>
+                        <p style="font-size: 0.85rem; color: var(--text-muted); line-height: 1.4;">
+                            Автоматический поиск сомнительных факторов. Если заявка сильно выбивается из рыночных стандартов, система штрафует балл для проведения ручной проверки.
+                        </p>
+                    </div>
+
+                </div>
+
+            </div>
+            <div class="modal-footer" style="margin-top: 32px;">
+                <button class="btn btn-outline" onclick="toggleCalcModal()" style="width: 100%;">Закрыть</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Модал "Мои заявки" -->
+    <div id="myAppsModal" class="modal" onclick="if(event.target===this) toggleMyAppsModal()">
+        <div class="modal-content animate-in zoom" style="max-width: 800px; padding: 28px;">
+            <div class="modal-header" style="border-bottom: 1px solid var(--border); padding-bottom: 16px; margin-bottom: 24px;">
+                <h2 style="font-size: 1.25rem; margin: 0;">📁 История ваших заявок</h2>
+                <button class="modal-close" onclick="toggleMyAppsModal()">✕</button>
+            </div>
+            <div class="modal-body" style="text-align: left; padding: 0;">
+                <div class="table-wrapper">
+                    <table style="width: 100%;">
+                        <thead>
+                            <tr>
+                                <th>Направление</th>
+                                <th>Сумма (₸)</th>
+                                <th>Скор AgrIscore</th>
+                                <th>Решение комиссии</th>
+                            </tr>
+                        </thead>
+                        <tbody id="myAppsBody">
+                            <tr><td colspan="4" style="text-align: center; color: var(--text-muted); padding: 20px;">Загрузка...</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            <div class="modal-footer" style="margin-top: 24px;">
+                <button class="btn btn-outline" onclick="toggleMyAppsModal()" style="width: 100%;">Закрыть</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast -->
+    <div class="toast" id="toast"></div>
+
+    <script>
+        const API = '';
+        let token = localStorage.getItem('token');
+        let user = JSON.parse(localStorage.getItem('user') || 'null');
+        let refData = { regions: [], directions: [] };
+        let currentStep = 1;
+        let isProfileFilled = false;
+        let currentAppId = null;  // For export functionality
+
+        if (!token || !user || user.role !== 'farmer') {
+            window.location.href = '/auth';
+        }
+        document.getElementById('navUser').textContent = '👤 ' + (user?.full_name || '');
+
+        // --- API helpers ---
+        function headers() { return { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token }; }
+
+        function parseIntegerInput(id) {
+            const raw = document.getElementById(id).value;
+            if (raw === '') return null;
+            const parsed = parseInt(raw, 10);
+            return Number.isNaN(parsed) ? null : parsed;
+        }
+
+        function parseFloatInput(id) {
+            const raw = document.getElementById(id).value;
+            if (raw === '') return null;
+            const parsed = parseFloat(raw);
+            return Number.isNaN(parsed) ? null : parsed;
+        }
+
+        function showToast(msg, type = 'success') {
+            const t = document.getElementById('toast');
+            t.textContent = msg;
+            t.className = 'toast toast-' + type + ' show';
+            setTimeout(() => t.classList.remove('show'), 3500);
+        }
+
+        function logout() {
+            localStorage.removeItem('token');
+            localStorage.removeItem('user');
+            window.location.href = '/';
+        }
+
+        // --- Steps ---
+        function goStep(n) {
+            if (n === 2 && !isProfileFilled) {
+                showToast('Сначала заполните и сохраните профиль!', 'error');
+                return;
+            }
+            if (n === 3 && document.getElementById('panel3').classList.contains('hidden')) {
+                // If trying to click step 3 directly before scoring - blocked.
+                return;
+            }
+            
+            // Show step tab if previously hidden
+            if (n === 2) document.getElementById('step2').style.display = 'flex';
+            if (n === 3) document.getElementById('step3').style.display = 'flex';
+
+            currentStep = n;
+            document.querySelectorAll('.step').forEach((s, i) => {
+                s.classList.remove('active', 'completed');
+                if (i + 1 < n) s.classList.add('completed');
+                if (i + 1 === n) s.classList.add('active');
+            });
+            document.getElementById('panel1').classList.toggle('hidden', n !== 1);
+            document.getElementById('panel2').classList.toggle('hidden', n !== 2);
+            document.getElementById('panel3').classList.toggle('hidden', n !== 3);
+        }
+
+        function toggleMyAppsModal() {
+            const modal = document.getElementById('myAppsModal');
+            if (modal.classList.contains('show')) {
+                modal.classList.remove('show');
+            } else {
+                showMyApps();
+            }
+        }
+
+        function toggleCalcModal() {
+            document.getElementById('calcModal').classList.toggle('show');
+        }
+
+        // --- Init ---
+        async function init() {
+            // Load reference data
+            try {
+                const res = await fetch(API + '/api/analytics/reference-data');
+                refData = await res.json();
+            } catch(e) {
+                refData = { regions: [], directions: [] };
+            }
+
+            // Populate dropdowns
+            const regionSel = document.getElementById('profRegion');
+            const dirSel = document.getElementById('profDirection');
+            const appDirSel = document.getElementById('appDirection');
+
+            refData.regions.forEach(r => {
+                regionSel.add(new Option(r, r));
+            });
+            refData.directions.forEach(d => {
+                const short = d.replace('Субсидирование в ', '').replace('Субсидирование ', '');
+                dirSel.add(new Option(short, d));
+                appDirSel.add(new Option(short, d));
+            });
+
+            // Handle dynamic dropdowns and labels
+            dirSel.addEventListener('change', updateProfLabels);
+            appDirSel.addEventListener('change', updateAppLabelsAndOptions);
+            updateProfLabels();
+            updateAppLabelsAndOptions();
+
+            // Load existing profile
+            try {
+                const res = await fetch(API + '/api/farmers/profile', { headers: headers() });
+                if (res.ok) {
+                    const p = await res.json();
+                    if (p) {
+                        document.getElementById('profIin').value = p.iin || '';
+                        document.getElementById('profPhone').value = p.phone || '';
+                        document.getElementById('profFarmName').value = p.farm_name || '';
+                        document.getElementById('profRegion').value = p.region || '';
+                        document.getElementById('profDistrict').value = p.district || '';
+                        document.getElementById('profDirection').value = p.livestock_direction || '';
+                        document.getElementById('profHeads').value = p.heads_count || '';
+                        document.getElementById('profYears').value = p.years_active || '';
+                        document.getElementById('profLand').value = p.land_area_ha || '';
+                        document.getElementById('profRevenue').value = p.annual_revenue || '';
+                        document.getElementById('profEmployees').value = p.employee_count || '';
+                        document.getElementById('profOwnedLand').value = p.owned_land_area_ha || '';
+                        document.getElementById('profLeasedLand').value = p.leased_land_area_ha || '';
+                        document.getElementById('profLeaseYears').value = p.lease_term_remaining_years || '';
+                        document.getElementById('profFacility').checked = !!p.has_livestock_facility;
+                        document.getElementById('profFeedBase').checked = !!p.has_feed_base;
+                        document.getElementById('profEquipment').checked = !!p.has_equipment;
+                        document.getElementById('profSalesContracts').checked = !!p.has_sales_contracts;
+                        document.getElementById('profTaxDebt').checked = !!p.has_tax_debt;
+                        document.getElementById('profOverdueLoans').checked = !!p.has_overdue_loans;
+
+                        // If user has a filled profile, auto go to application step
+                        if (p.farm_name && p.region) {
+                            isProfileFilled = true;
+                            document.getElementById('step2').style.display = 'flex';
+                            goStep(2);
+                        }
+                    }
+                }
+            } catch(e) {}
+
+            // Calc heads on input
+            document.getElementById('appAmount').addEventListener('input', calcHeads);
+            document.getElementById('appNorm').addEventListener('input', calcHeads);
+        }
+
+        function getLabelsForDirection(dir) {
+            dir = dir || '';
+            const isBees = dir.includes('пчеловод');
+            const isAI = dir.includes('осеменен');
+            const isBird = dir.includes('птицевод');
+            if (isBees) return { normLabel: 'Норматив на пчелосемью (тг) *', calcLabel: 'Количество пчелосемей:', unit: 'пчелосемей', profLabel: 'Количество (пчелосемей)' };
+            if (isAI) return { normLabel: 'Норматив на услугу (тг) *', calcLabel: 'Количество услуг:', unit: 'услуг', profLabel: 'Поголовье (для осеменения)' };
+            if (isBird) return { normLabel: 'Норматив на птицу (тг) *', calcLabel: 'Расчётное количество птиц:', unit: 'птиц', profLabel: 'Поголовье птиц' };
+            return { normLabel: 'Норматив на голову (тг) *', calcLabel: 'Расчётное поголовье:', unit: 'голов', profLabel: 'Поголовье (голов)' };
+        }
+
+        function updateProfLabels() {
+            const dirSel = document.getElementById('profDirection').value;
+            const labels = getLabelsForDirection(dirSel);
+            document.getElementById('profHeadsLabel').textContent = labels.profLabel;
+        }
+
+        function updateAppLabelsAndOptions() {
+            const dir = document.getElementById('appDirection').value;
+            const labels = getLabelsForDirection(dir);
+            document.getElementById('appNormLabel').textContent = labels.normLabel;
+            document.getElementById('calcHeadsLabel').textContent = labels.calcLabel;
+            document.getElementById('calcHeadsUnit').textContent = labels.unit;
+            
+            // Populate subsidy names dynamically from mapping
+            const subSel = document.getElementById('appSubsidyName');
+            subSel.innerHTML = '';
+            const mapping = refData.mapping || {};
+            const names = mapping[dir] || [];
+            if (names.length === 0) {
+                subSel.add(new Option('Удешевление затрат', 'Удешевление затрат')); // fallback
+            } else {
+                names.forEach(n => {
+                    // Try to make name slightly shorter if needed, but original name is fine
+                    subSel.add(new Option(n.length > 90 ? n.substring(0, 87) + '...' : n, n));
+                });
+            }
+        }
+
+        function calcHeads() {
+            const a = parseFloat(document.getElementById('appAmount').value) || 0;
+            const n = parseFloat(document.getElementById('appNorm').value) || 1;
+            document.getElementById('calcHeads').textContent = n > 0 ? Math.round(a / n) : '—';
+        }
+
+        // --- Save Profile ---
+        async function saveProfile(e) {
+            e.preventDefault();
+            const btn = document.getElementById('profileSaveBtn');
+            btn.disabled = true; btn.textContent = 'Сохранение...';
+            try {
+                const body = {
+                    iin: document.getElementById('profIin').value || null,
+                    phone: document.getElementById('profPhone').value || null,
+                    farm_name: document.getElementById('profFarmName').value || null,
+                    region: document.getElementById('profRegion').value,
+                    district: document.getElementById('profDistrict').value || null,
+                    livestock_direction: document.getElementById('profDirection').value || null,
+                    heads_count: parseIntegerInput('profHeads'),
+                    years_active: parseIntegerInput('profYears'),
+                    land_area_ha: parseFloatInput('profLand'),
+                    annual_revenue: parseFloatInput('profRevenue'),
+                    employee_count: parseIntegerInput('profEmployees'),
+                    owned_land_area_ha: parseFloatInput('profOwnedLand'),
+                    leased_land_area_ha: parseFloatInput('profLeasedLand'),
+                    lease_term_remaining_years: parseIntegerInput('profLeaseYears'),
+                    has_livestock_facility: document.getElementById('profFacility').checked,
+                    has_feed_base: document.getElementById('profFeedBase').checked,
+                    has_equipment: document.getElementById('profEquipment').checked,
+                    has_sales_contracts: document.getElementById('profSalesContracts').checked,
+                    has_tax_debt: document.getElementById('profTaxDebt').checked,
+                    has_overdue_loans: document.getElementById('profOverdueLoans').checked,
+                };
+                const res = await fetch(API + '/api/farmers/profile', {
+                    method: 'POST', headers: headers(), body: JSON.stringify(body),
+                });
+                if (!res.ok) throw new Error('Failed to save');
+                isProfileFilled = true;
+                document.getElementById('step2').style.display = 'flex';
+                showToast('Профиль сохранён!');
+                goStep(2);
+            } catch(err) {
+                document.getElementById('profileMsg').textContent = err.message;
+                document.getElementById('profileMsg').style.color = 'var(--red)';
+            } finally {
+                btn.disabled = false; btn.textContent = 'Сохранить профиль и продолжить →';
+            }
+        }
+
+        // --- Submit Application ---
+        async function submitApp(e) {
+            e.preventDefault();
+            const btn = document.getElementById('appSubmitBtn');
+            btn.disabled = true; btn.textContent = 'Скоринг...';
+            try {
+                const body = {
+                    direction: document.getElementById('appDirection').value,
+                    subsidy_name: document.getElementById('appSubsidyName').value,
+                    amount: parseFloat(document.getElementById('appAmount').value),
+                    norm: parseFloat(document.getElementById('appNorm').value),
+                    own_contribution_percent: parseFloatInput('appOwnContribution'),
+                    planned_execution_months: parseIntegerInput('appExecutionMonths'),
+                    has_supporting_documents: document.getElementById('appHasDocs').checked,
+                    previous_subsidies_count: parseIntegerInput('appPrevSubsidies'),
+                    previous_subsidy_returns_count: parseIntegerInput('appPrevReturns'),
+                    previous_subsidy_violations_count: parseIntegerInput('appPrevViolations'),
+                    previous_subsidy_overdue_reports_count: parseIntegerInput('appPrevOverdueReports'),
+                    previous_subsidies_closed_properly: parseIntegerInput('appPrevSubsidies') > 0 ? document.getElementById('appClosedProperly').checked : null,
+                    requested_purpose: document.getElementById('appPurpose').value || null,
+                    extra_context: document.getElementById('appExtraContext').value || null,
+                };
+                const res = await fetch(API + '/api/applications', {
+                    method: 'POST', headers: headers(), body: JSON.stringify(body),
+                });
+                const data = await res.json();
+                if (!res.ok) throw new Error(data.detail || 'Submit failed');
+                showResult(data);
+                goStep(3);
+                showToast('Заявка отправлена и оценена!');
+            } catch(err) {
+                document.getElementById('appMsg').textContent = err.message;
+                document.getElementById('appMsg').style.color = 'var(--red)';
+            } finally {
+                btn.disabled = false; btn.textContent = 'Отправить на скоринг';
+            }
+        }
+
+        // --- Show Result ---
+        function showResult(data) {
+            currentAppId = data.id;  // Save for export functionality
+            const esc = (v) => String(v ?? '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+            const score = data.composite_score || 0;
+            const tier = data.tier || '—';
+
+            // Gauge animation
+            const circle = document.getElementById('gaugeCircle');
+            const circumference = 314;
+            const offset = circumference - (score / 100) * circumference;
+            setTimeout(() => { circle.style.strokeDashoffset = offset; }, 100);
+
+            let gaugeColor = '#ef4444';
+            if (score >= 75) gaugeColor = '#10b981';
+            else if (score >= 50) gaugeColor = '#f59e0b';
+            circle.style.stroke = gaugeColor;
+
+            document.getElementById('scoreValue').textContent = score.toFixed(1);
+            document.getElementById('scoreTier').textContent = tier;
+
+            const badge = document.getElementById('tierBadge');
+            badge.textContent = tier;
+            badge.className = 'tier-badge';
+            if (tier === 'Приоритет') badge.classList.add('tier-priority');
+            else if (tier === 'Рассмотреть') badge.classList.add('tier-review');
+            else badge.classList.add('tier-reject');
+
+            document.getElementById('mlScoreVal').textContent = ((data.ml_score || 0) * 100).toFixed(1);
+            document.getElementById('ruleScoreVal').textContent = ((data.rule_score || 0) * 100).toFixed(1) + '%';
+            document.getElementById('anomalyVal').textContent = data.anomaly_clean ? '✅ Норма' : '⚠️ Аномалия';
+
+            // SHAP bars
+            const shapContainer = document.getElementById('shapBars');
+            shapContainer.innerHTML = '';
+            if (data.shap_explanations && data.shap_explanations.length) {
+                const maxAbsShap = Math.max(...data.shap_explanations.map(s => Math.abs(s.shap_value)), 0.01);
+                data.shap_explanations.forEach(s => {
+                    const pct = Math.min(Math.abs(s.shap_value) / maxAbsShap * 45, 45);
+                    const isPos = s.shap_value > 0;
+                    const barClass = isPos ? 'shap-bar-positive' : 'shap-bar-negative';
+                    const arrow = isPos ? '↑' : '↓';
+                    const div = document.createElement('div');
+                    div.className = 'shap-bar-item';
+                    div.innerHTML = `
+                        <div class="shap-bar-label">${s.label}</div>
+                        <div class="shap-bar-track">
+                            <div class="shap-bar-center"></div>
+                            <div class="shap-bar-fill ${barClass}" style="width:${pct}%;">
+                                ${arrow} ${Math.abs(s.shap_value).toFixed(3)}
+                            </div>
+                        </div>
+                    `;
+                    shapContainer.appendChild(div);
+                });
+            }
+
+            // Rules checklist
+            const rulesDiv = document.getElementById('rulesChecklist');
+            rulesDiv.innerHTML = '';
+            const ruleLabels = {
+                rule_min_heads: 'Поголовье ≥ 1 головы',
+                rule_norm_positive: 'Норматив > 0',
+                rule_amount_positive: 'Сумма > 0',
+                rule_not_extreme_amount: 'Не превышает P99 по направлению',
+                rule_norm_in_range: 'Норматив в диапазоне mean ± 3σ',
+            };
+            if (data.rules) {
+                Object.entries(ruleLabels).forEach(([key, label]) => {
+                    const pass = data.rules[key] === 1;
+                    rulesDiv.innerHTML += `
+                        <div class="rule-item">
+                            <span class="rule-icon">${pass ? '✅' : '❌'}</span>
+                            <span class="rule-text ${pass ? 'rule-pass' : 'rule-fail'}">${label}</span>
+                        </div>
+                    `;
+                });
+            }
+
+            // Criteria + explanation + sources
+            if (data.explanation) {
+                const isAI = data.explanation_source === 'llm';
+                const badge = isAI
+                    ? `<span style="background:#7c3aed;color:#fff;font-size:11px;padding:2px 7px;border-radius:10px;margin-left:6px;">AI</span>`
+                    : `<span style="background:#475569;color:#cbd5e1;font-size:11px;padding:2px 7px;border-radius:10px;margin-left:6px;">авто</span>`;
+                rulesDiv.innerHTML += `
+                    <div style="margin-top:12px; padding:10px; border-radius:8px; background: rgba(59,130,246,0.12); border: 1px solid rgba(59,130,246,0.25); color:#dbeafe;">
+                        <strong>Объяснение</strong>${badge}: ${esc(data.explanation)}
+                    </div>
+                `;
+            }
+
+            if (data.llm_extra_comment) {
+                rulesDiv.innerHTML += `
+                    <div style="margin-top:12px; padding:10px; border-radius:8px; background: rgba(16,185,129,0.12); border: 1px solid rgba(16,185,129,0.25); color:#dcfce7;">
+                        <strong>Комментарий ИИ по пояснению фермера</strong>: ${esc(data.llm_extra_comment)}
+                    </div>
+                `;
+            }
+
+            if (data.criteria && data.criteria.length) {
+                const critHtml = data.criteria
+                    .filter(c => c && c.title)
+                    .map(c => {
+                        const s = Number(c.score_0_100 ?? ((c.score_0_1 ?? 0) * 100));
+                        const pts = Number(c.points_0_100 ?? s);
+                        const ptsMax = Number(c.max_points_0_100 ?? 100);
+                        const status = c.status === 'ok' ? '✅' : c.status === 'review' ? '⚠️' : '❌';
+                        const reason = esc(c.explanation || '');
+                        const ptsText = (!isNaN(pts) && !isNaN(ptsMax)) ? `${pts.toFixed(2)}/${ptsMax.toFixed(2)} балла` : '—';
+                        return `<div class="rule-item"><span class="rule-icon">${status}</span><span class="rule-text">${esc(c.title)}: <strong>${isNaN(s) ? '—' : s.toFixed(1)}</strong> · <strong>${ptsText}</strong><br/><small style="color:#93c5fd">За что: ${reason}</small></span></div>`;
+                    }).join('');
+                rulesDiv.innerHTML += `
+                    <div style="margin-top:12px;">
+                        <div style="font-weight:700; margin-bottom:8px;">Критерии скоринга (за что начислены баллы)</div>
+                        ${critHtml}
+                    </div>
+                `;
+            }
+
+            if (data.sources && data.sources.length) {
+                const srcHtml = data.sources
+                    .filter(s => s && s.url)
+                    .map(s => `<li><a href="${esc(s.url)}" target="_blank" rel="noopener noreferrer">${esc(s.title || s.url)}</a></li>`)
+                    .join('');
+                rulesDiv.innerHTML += `
+                    <div style="margin-top:12px;">
+                        <div style="font-weight:700; margin-bottom:8px;">Источники данных</div>
+                        <ul style="padding-left:18px; margin:0;">${srcHtml}</ul>
+                    </div>
+                    <div style="margin-top:20px; display:flex; gap:10px; flex-wrap:wrap;">
+                        <button onclick="exportAppReport(${currentAppId}, 'html')" style="padding:10px 16px; background:#3b82f6; color:white; border:none; border-radius:6px; cursor:pointer; font-size:14px;">
+                            📥 Скачать полный отчёт
+                        </button>
+                        <button onclick="exportAppReport(${currentAppId}, 'json')" style="padding:10px 16px; background:#10b981; color:white; border:none; border-radius:6px; cursor:pointer; font-size:14px;">
+                            📊 Скачать JSON для системы
+                        </button>
+                        <button onclick="sendReportEmail(${currentAppId})" style="padding:10px 16px; background:#8b5cf6; color:white; border:none; border-radius:6px; cursor:pointer; font-size:14px;">
+                            📧 Отправить на email
+                        </button>
+                    </div>
+                `;
+            }
+        }
+
+        function closeMyApps() {
+            document.getElementById('myAppsModal').classList.remove('show');
+        }
+
+        async function showMyApps() {
+            const modal = document.getElementById('myAppsModal');
+            modal.classList.add('show');
+            try {
+                const res = await fetch(API + '/api/applications', { headers: headers() });
+                const data = await res.json();
+                const tbody = document.getElementById('myAppsBody');
+                tbody.innerHTML = '';
+                (data.items || []).forEach((a, i) => {
+                    const tierClass = a.tier === 'Приоритет' ? 'tier-priority' : a.tier === 'Рассмотреть' ? 'tier-review' : 'tier-reject';
+                    const decClass = 'decision-' + a.decision;
+                    const decLabel = { pending: 'На рассмотрении', approved: 'Одобрена', rejected: 'Отклонена', more_info: 'Доп. инфо' };
+                    const dir = (a.direction || '').replace('Субсидирование в ', '').replace('Субсидирование ', '');
+                    tbody.innerHTML += `
+                        <tr>
+                            <td>${i + 1}</td>
+                            <td>${dir}</td>
+                            <td>${(a.amount / 1e6).toFixed(2)} млн</td>
+                            <td><strong>${(a.composite_score || 0).toFixed(1)}</strong></td>
+                            <td><span class="tier-badge ${tierClass}">${a.tier}</span></td>
+                            <td><span class="tier-badge ${decClass}">${decLabel[a.decision] || a.decision}</span></td>
+                            <td>${a.date_submitted ? new Date(a.date_submitted).toLocaleDateString('ru') : '—'}</td>
+                        </tr>
+                    `;
+                });
+            } catch(e) { showToast('Ошибка загрузки', 'error'); }
+        }
+
+        function headers() {
+            return { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' };
+        }
+
+        async function exportAppReport(appId, format) {
+            try {
+                if (format === 'html') {
+                    const url = `${API}/api/applications/${appId}/export/html`;
+                    const res = await fetch(url, { headers: headers() });
+                    if (!res.ok) {
+                        const d = await res.json().catch(() => ({}));
+                        throw new Error(d.detail || 'Не удалось сформировать HTML-отчёт');
+                    }
+                    const html = await res.text();
+                    const blob = new Blob([html], { type: 'text/html;charset=utf-8' });
+                    const reportUrl = URL.createObjectURL(blob);
+                    window.open(reportUrl, '_blank');
+                    showToast('Отчёт открывается в новой вкладке. Печать: Ctrl+P', 'info');
+                } else if (format === 'json') {
+                    const url = `${API}/api/applications/${appId}/export/json`;
+                    const res = await fetch(url, { headers: headers() });
+                    if (!res.ok) {
+                        const d = await res.json().catch(() => ({}));
+                        throw new Error(d.detail || 'Не удалось сформировать JSON-отчёт');
+                    }
+                    const json = await res.json();
+                    const dataStr = JSON.stringify(json.data, null, 2);
+                    const blob = new Blob([dataStr], { type: 'application/json' });
+                    const link = document.createElement('a');
+                    link.href = URL.createObjectURL(blob);
+                    link.download = `agrosubsidia_app_${appId}.json`;
+                    link.click();
+                    showToast('JSON успешно скачан', 'success');
+                }
+            } catch(e) {
+                showToast('Ошибка скачивания: ' + e.message, 'error');
+            }
+        }
+
+        async function sendReportEmail(appId) {
+            try {
+                const res = await fetch(`${API}/api/applications/${appId}/export/send-to-email`, {
+                    method: 'POST',
+                    headers: headers(),
+                });
+                const data = await res.json();
+                showToast('Отчёт будет отправлен на ваш email', 'success');
+            } catch(e) {
+                showToast('Ошибка отправки: ' + e.message, 'error');
+            }
+        }
+
+        function showToast(message, type = 'info') {
+            const toast = document.createElement('div');
+            toast.textContent = message;
+            toast.style.cssText = `
+                position: fixed;
+                top: 20px;
+                right: 20px;
+                padding: 15px 20px;
+                border-radius: 8px;
+                background: ${type === 'success' ? '#10b981' : type === 'error' ? '#ef4444' : '#3b82f6'};
+                color: white;
+                z-index: 9999;
+                font-size: 14px;
+                box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            `;
+            document.body.appendChild(toast);
+            setTimeout(() => toast.remove(), 3000);
+        }
+
+        init();
+    </script>
+</body>
+</html>

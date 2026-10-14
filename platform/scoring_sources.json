@@ -1,0 +1,51 @@
+[
+  {
+    "id": "hist_features",
+    "title": "Исторические данные заявок (внутренний датасет проекта)",
+    "url": "local:features_data.pkl",
+    "publisher": "Decent Coders",
+    "used_for": ["ml", "rules", "benchmarks"]
+  },
+  {
+    "id": "constitution_kz",
+    "title": "Конституция Республики Казахстан",
+    "url": "https://adilet.zan.kz/rus/docs/K950001000_",
+    "publisher": "Информационно-правовая система Әділет",
+    "used_for": ["legal_principles"]
+  },
+  {
+    "id": "stat_livestock",
+    "title": "Статистика сельского, лесного, охотничьего и рыбного хозяйства",
+    "url": "https://stat.gov.kz/ru/industries/businessstatistics/stat-forrest-village-hunt-fish/",
+    "publisher": "Бюро национальной статистики РК",
+    "used_for": ["regional_benchmarks"]
+  },
+  {
+    "id": "egov_subsidy_sko",
+    "title": "Выплаченные субсидии товаропроизводителям по программе развития племенного животноводства СКО",
+    "url": "https://data.egov.kz/datasets/view?index=subsidiizhivotnovodstvosko1",
+    "publisher": "data.egov.kz",
+    "used_for": ["regional_capacity_reference"]
+  },
+  {
+    "id": "egov_registry_processing",
+    "title": "Реестр объектов производства по животноводству",
+    "url": "https://data.egov.kz/datasets/view?index=reestr_uboihraneniepererab",
+    "publisher": "data.egov.kz",
+    "used_for": ["compliance_reference"]
+  },
+  {
+    "id": "egov_credit_proxy",
+    "title": "Кредиты банковского сектора экономики",
+    "url": "https://data.egov.kz/datasets/view?index=kredity_bankovskogo_sektora_ek1",
+    "publisher": "data.egov.kz",
+    "used_for": ["regional_risk_reference"]
+  },
+  {
+    "id": "kazhydromet_meteo",
+    "title": "Метеорологическая база данных",
+    "url": "https://meteo.kazhydromet.kz/database_meteo/",
+    "publisher": "РГП Казгидромет",
+    "used_for": ["climate_risk_reference"]
+  }
+]

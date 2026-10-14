@@ -1,0 +1,22 @@
+# Virtual environment
+.venv/
+venv/
+__pycache__/
+*.pyc
+
+# Environment secrets
+.env
+
+# Database
+agrosubsidia.db
+
+# IDE
+.vscode/
+.idea/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Large data files (add to Git LFS or download separately)
+*.xlsx

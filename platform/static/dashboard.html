@@ -1,0 +1,731 @@
+<!DOCTYPE html>
+<html lang="ru" translate="no">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Кабинет комиссии — Система AgrIscore</title>
+    <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+    <nav class="navbar">
+        <a href="/" class="navbar-brand"><span><span class="brand-accent">A</span>gr<span class="brand-accent">I</span>score</span></a>
+        <div class="navbar-links">
+            <span class="navbar-user" id="navUser">👤</span>
+            <a href="/dashboard">Дашборд</a>
+            <button onclick="logout()">Выйти</button>
+        </div>
+    </nav>
+
+    <div class="page-wrapper">
+        <div class="layout-sidebar">
+            <!-- SIDEBAR -->
+            <aside class="sidebar">
+                <h3>Фильтры</h3>
+                <div class="form-group mb-md">
+                    <label>Регион</label>
+                    <select class="form-select" id="filterRegion" onchange="onFiltersChanged()">
+                        <option value="">Все регионы</option>
+                    </select>
+                </div>
+                <div class="form-group mb-md">
+                    <label>Направление</label>
+                    <select class="form-select" id="filterDirection" onchange="onFiltersChanged()">
+                        <option value="">Все направления</option>
+                    </select>
+                </div>
+                <div class="form-group mb-md">
+                    <label>Тир</label>
+                    <select class="form-select" id="filterTier" onchange="onFiltersChanged()">
+                        <option value="">Все</option>
+                        <option value="Приоритет">🟢 Приоритет</option>
+                        <option value="Рассмотреть">🟡 Рассмотреть</option>
+                        <option value="Отклонить">🔴 Отклонить</option>
+                    </select>
+                </div>
+                <div class="form-group mb-md">
+                    <label>Решение</label>
+                    <select class="form-select" id="filterDecision" onchange="onFiltersChanged()">
+                        <option value="">Все</option>
+                        <option value="pending">На рассмотрении</option>
+                        <option value="approved">Одобрена</option>
+                        <option value="rejected">Отклонена</option>
+                        <option value="more_info">Доп. инфо</option>
+                    </select>
+                </div>
+                <div class="form-group mb-lg">
+                    <label>Мин. скор: <strong id="minScoreLabel">0</strong></label>
+                    <input type="range" id="filterMinScore" min="0" max="100" value="0" style="width:100%;" oninput="document.getElementById('minScoreLabel').textContent=this.value" onchange="onFiltersChanged()">
+                </div>
+
+                <div style="border-top: 1px solid var(--border); padding-top: 20px; margin-top: 20px;">
+                    <h3 style="margin-bottom: 12px;">Общая сводка</h3>
+                    <div style="font-size:0.85rem; display:flex; flex-direction:column; gap:10px;">
+                        <div class="flex justify-between"><span>Всего заявок</span><strong id="statTotal">—</strong></div>
+                        <div class="flex justify-between"><span>Приоритетных</span><strong id="statPriority" style="color:var(--green);">—</strong></div>
+                        <div class="flex justify-between"><span>Средний скор</span><strong id="statAvg">—</strong></div>
+                        <div class="flex justify-between"><span>Сумма (млрд ₸)</span><strong id="statAmount">—</strong></div>
+                        <div style="border-top:1px solid var(--border); padding-top:10px; margin-top:4px;">
+                            <div class="flex justify-between"><span>Ожидают</span><strong id="statPending" style="color:var(--yellow);">—</strong></div>
+                            <div class="flex justify-between mt-sm"><span>Одобрено</span><strong id="statApproved" style="color:var(--green);">—</strong></div>
+                            <div class="flex justify-between mt-sm"><span>Отклонено</span><strong id="statRejected" style="color:var(--red);">—</strong></div>
+                        </div>
+                    </div>
+                </div>
+            </aside>
+
+            <!-- MAIN CONTENT -->
+            <main class="main-content">
+                <div class="page-header">
+                    <h1>Кабинет комиссии</h1>
+                    <p class="subtitle">Merit-based ранжирование заявок с AI-объяснениями</p>
+                </div>
+
+                <!-- KPI Cards -->
+                <div class="grid-4 mb-lg" id="kpiCards">
+                    <div class="kpi-card animate-in delay-1">
+                        <div class="kpi-icon"></div>
+                        <div class="kpi-value" id="kpiTotal">—</div>
+                        <div class="kpi-label">Всего заявок</div>
+                    </div>
+                    <div class="kpi-card animate-in delay-2">
+                        <div class="kpi-icon"></div>
+                        <div class="kpi-value" id="kpiPriority">—</div>
+                        <div class="kpi-label">Приоритетных</div>
+                    </div>
+                    <div class="kpi-card animate-in delay-3">
+                        <div class="kpi-icon"></div>
+                        <div class="kpi-value" id="kpiAvg">—</div>
+                        <div class="kpi-label">Средний скор</div>
+                    </div>
+                    <div class="kpi-card animate-in delay-4">
+                        <div class="kpi-icon"></div>
+                        <div class="kpi-value" id="kpiAmount">—</div>
+                        <div class="kpi-label">Сумма (млрд ₸)</div>
+                    </div>
+                </div>
+
+                <!-- Applications Table -->
+                <div class="table-wrapper">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Ранг</th><th>Заявитель</th><th>Регион</th>
+                                <th>Направление</th><th>Сумма</th><th>Голов</th>
+                                <th>Score</th><th>Тир</th><th>Решение</th>
+                            </tr>
+                        </thead>
+                        <tbody id="appsBody"></tbody>
+                    </table>
+                </div>
+                <p id="tableInfo" class="subtitle mt-sm" style="font-size:0.8rem;"></p>
+                <div class="flex items-center gap-sm mt-sm">
+                    <button class="btn btn-outline btn-sm" id="prevPageBtn" type="button">Назад</button>
+                    <button class="btn btn-outline btn-sm" id="nextPageBtn" type="button">Вперёд</button>
+                    <span id="pageInfo" class="subtitle" style="font-size:0.8rem;">Страница 1</span>
+                </div>
+            </main>
+        </div>
+    </div>
+
+    <!-- DETAIL PANEL -->
+    <div class="detail-panel" id="detailPanel">
+        <button class="detail-close" onclick="closeDetail()">✕</button>
+        <div id="detailContent"></div>
+    </div>
+
+    <!-- Обновленный модал "Как это работает" -->
+    <div id="calcModal" class="modal" onclick="if(event.target===this) toggleCalcModal()">
+        <div class="modal-content animate-in zoom" style="max-width: 550px; padding: 32px;">
+            <div class="modal-header" style="border-bottom: 1px solid var(--border); padding-bottom: 16px; margin-bottom: 24px;">
+                <h2 style="font-size: 1.2rem; margin: 0;">Как работает AgrIscore?</h2>
+                <button class="modal-close" onclick="toggleCalcModal()">✕</button>
+            </div>
+            <div class="modal-body" style="text-align: left;">
+                
+                <div style="margin-bottom: 28px;">
+                    <h3 style="font-size: 1rem; color: #fff; margin-bottom: 8px; display: flex; align-items: center; gap: 8px;">
+                        <span style="font-size:1.2rem;">🤖</span> Что такое Composite Score?
+                    </h3>
+                    <p style="font-size: 0.9rem; color: var(--text-muted); line-height: 1.5;">
+                        Это единый рейтинг заявки от 0 до 100. Он определяет приоритет на получение субсидий. 
+                        Скор складывается из трёх независимых моделей оценки, исключая человеческий фактор.
+                    </p>
+                </div>
+
+                <div style="border-left: 2px solid var(--border); padding-left: 20px; margin-left: 8px; display: flex; flex-direction: column; gap: 24px;">
+                    
+                    <div style="position: relative;">
+                        <div style="position: absolute; left: -25px; top: 2px; width: 8px; height: 8px; border-radius: 50%; background: #10b981;"></div>
+                        <div style="font-size: 0.70rem; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 4px;">Этап 1 • Вес: 50%</div>
+                        <h4 style="font-size: 0.95rem; color: #fff; margin-bottom: 6px;">Предиктивная AI-модель</h4>
+                        <p style="font-size: 0.85rem; color: var(--text-muted); line-height: 1.4;">
+                            Обучена на исторических ссесиях МСХ РК. Анализирует регион, направление и запрашиваемые суммы фермера. Предсказывает вероятность целевого использования.
+                        </p>
+                    </div>
+
+                    <div style="position: relative;">
+                        <div style="position: absolute; left: -25px; top: 2px; width: 8px; height: 8px; border-radius: 50%; background: #3b82f6;"></div>
+                        <div style="font-size: 0.70rem; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 4px;">Этап 2 • Вес: 30%</div>
+                        <h4 style="font-size: 0.95rem; color: #fff; margin-bottom: 6px;">Нормативный контроль</h4>
+                        <p style="font-size: 0.85rem; color: var(--text-muted); line-height: 1.4;">
+                            Жесткая проверка соответствия: не превышает ли сумма лимиты, реалистично ли количество голов поголовья для указанной фермы.
+                        </p>
+                    </div>
+
+                    <div style="position: relative;">
+                        <div style="position: absolute; left: -25px; top: 2px; width: 8px; height: 8px; border-radius: 50%; background: #ef4444;"></div>
+                        <div style="font-size: 0.70rem; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 4px;">Этап 3 • Вес: 20%</div>
+                        <h4 style="font-size: 0.95rem; color: #fff; margin-bottom: 6px;">Детекция аномалий (Анти-Фрод)</h4>
+                        <p style="font-size: 0.85rem; color: var(--text-muted); line-height: 1.4;">
+                            Автоматический поиск сомнительных факторов. Если заявка сильно выбивается из рыночных стандартов, система штрафует балл для проведения ручной проверки.
+                        </p>
+                    </div>
+
+                </div>
+
+            </div>
+            <div class="modal-footer" style="margin-top: 32px;">
+                <button class="btn btn-outline" onclick="toggleCalcModal()" style="width: 100%;">Закрыть</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="criterionModal" class="modal" onclick="if(event.target===this) closeCriterionModal()">
+        <div class="modal-content animate-in zoom" style="max-width: 760px; padding: 28px;">
+            <div class="modal-header" style="border-bottom: 1px solid var(--border); padding-bottom: 16px; margin-bottom: 20px;">
+                <h2 id="criterionModalTitle" style="font-size: 1.15rem; margin: 0;">Детали критерия</h2>
+                <button class="modal-close" onclick="closeCriterionModal()">✕</button>
+            </div>
+            <div id="criterionModalBody" class="modal-body" style="text-align:left;"></div>
+            <div class="modal-footer" style="margin-top: 24px;">
+                <button class="btn btn-outline" onclick="closeCriterionModal()" style="width: 100%;">Закрыть</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast -->
+    <div class="toast" id="toast"></div>
+
+    <script>
+        const API = '';
+        let token = localStorage.getItem('token');
+        let user = JSON.parse(localStorage.getItem('user') || 'null');
+        const PAGE_LIMIT = 100;
+        let currentOffset = 0;
+        let currentTotal = 0;
+        let appsAbortController = null;
+        let appsDebounceTimer = null;
+
+        if (!token || !user || user.role !== 'commissioner') {
+            window.location.href = '/auth';
+        }
+        document.getElementById('navUser').textContent = '👤 ' + (user?.full_name || '');
+
+        function headers() { return { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token }; }
+        function logout() { localStorage.removeItem('token'); localStorage.removeItem('user'); window.location.href = '/'; }
+        function showToast(msg, type='success') {
+            const t = document.getElementById('toast');
+            t.textContent = msg; t.className = 'toast toast-' + type + ' show';
+            setTimeout(() => t.classList.remove('show'), 3500);
+        }
+        function escapeHtml(value) {
+            return String(value ?? '')
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;')
+                .replace(/'/g, '&#39;');
+        }
+        function toNumber(value, fallback = 0) {
+            const n = Number(value);
+            return Number.isFinite(n) ? n : fallback;
+        }
+        function shortenDirection(direction) {
+            return String(direction || '').replace('Субсидирование в ', '').replace('Субсидирование ', '');
+        }
+        function buildFiltersParams() {
+            const params = new URLSearchParams();
+            const region = document.getElementById('filterRegion').value;
+            const direction = document.getElementById('filterDirection').value;
+            const tier = document.getElementById('filterTier').value;
+            const decision = document.getElementById('filterDecision').value;
+            const minScore = document.getElementById('filterMinScore').value;
+            if (region) params.set('region', region);
+            if (direction) params.set('direction', direction);
+            if (tier) params.set('tier', tier);
+            if (decision) params.set('decision', decision);
+            if (parseInt(minScore, 10) > 0) params.set('min_score', minScore);
+            return params;
+        }
+        async function apiFetchJson(url, options = {}) {
+            const res = await fetch(url, options);
+            if (res.status === 401 || res.status === 403) {
+                showToast('Сессия истекла. Войдите снова.', 'error');
+                logout();
+                throw new Error('Unauthorized');
+            }
+            if (!res.ok) {
+                let message = `HTTP ${res.status}`;
+                try {
+                    const err = await res.json();
+                    if (err?.detail) message = err.detail;
+                } catch (_) {}
+                throw new Error(message);
+            }
+            return res.json();
+        }
+        function onFiltersChanged() {
+            currentOffset = 0;
+            loadSummary();
+            loadAppsDebounced();
+        }
+        function loadAppsDebounced() {
+            clearTimeout(appsDebounceTimer);
+            appsDebounceTimer = setTimeout(() => { loadApps(); }, 250);
+        }
+        function updatePagination(total, shownCount) {
+            const pageCount = Math.max(1, Math.ceil(total / PAGE_LIMIT));
+            const page = Math.floor(currentOffset / PAGE_LIMIT) + 1;
+            document.getElementById('pageInfo').textContent = `Страница ${page} из ${pageCount}`;
+            document.getElementById('prevPageBtn').disabled = currentOffset <= 0;
+            document.getElementById('nextPageBtn').disabled = currentOffset + shownCount >= total;
+        }
+
+        function toggleCalcModal() {
+            document.getElementById('calcModal').classList.toggle('show');
+        }
+        function closeCriterionModal() {
+            document.getElementById('criterionModal').classList.remove('show');
+        }
+        function formatCriterionValue(value) {
+            if (value == null || value === '') return '—';
+            if (typeof value === 'object') {
+                return Object.entries(value)
+                    .map(([key, val]) => `<div style="display:flex; justify-content:space-between; gap:16px; padding:6px 0; border-bottom:1px solid rgba(255,255,255,0.06);"><span class="subtitle" style="font-size:0.82rem;">${escapeHtml(key)}</span><strong style="text-align:right;">${escapeHtml(Array.isArray(val) ? val.join(', ') : String(val))}</strong></div>`)
+                    .join('');
+            }
+            return `<strong>${escapeHtml(String(value))}</strong>`;
+        }
+        function openCriterionModal(encodedCriterion) {
+            const criterion = JSON.parse(decodeURIComponent(encodedCriterion));
+            const title = criterion.title || 'Критерий';
+            const score01 = Number.isFinite(Number(criterion.score_0_1)) ? Number(criterion.score_0_1) : null;
+            const score100 = Number.isFinite(Number(criterion.score_0_100)) ? Number(criterion.score_0_100) : (score01 != null ? score01 * 100 : null);
+            const points = Number.isFinite(Number(criterion.points_0_100)) ? Number(criterion.points_0_100) : null;
+            const pointsMax = Number.isFinite(Number(criterion.max_points_0_100)) ? Number(criterion.max_points_0_100) : null;
+            const formula = criterion.points_formula || '—';
+            const sourceIds = Array.isArray(criterion.source_ids) && criterion.source_ids.length ? criterion.source_ids.join(', ') : '—';
+            document.getElementById('criterionModalTitle').textContent = title;
+            document.getElementById('criterionModalBody').innerHTML = `
+                <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(180px, 1fr)); gap:12px; margin-bottom:18px;">
+                    <div style="background:var(--bg-input); padding:14px; border-radius:10px;"><div class="label">Статус</div><strong>${escapeHtml(criterion.status || '—')}</strong></div>
+                    <div style="background:var(--bg-input); padding:14px; border-radius:10px;"><div class="label">Score</div><strong>${score100 != null ? score100.toFixed(1) : '—'}</strong></div>
+                    <div style="background:var(--bg-input); padding:14px; border-radius:10px;"><div class="label">Начислено</div><strong>${points != null && pointsMax != null ? `${points.toFixed(2)} / ${pointsMax.toFixed(2)}` : '—'}</strong></div>
+                </div>
+                <div style="background:var(--bg-input); padding:14px; border-radius:10px; margin-bottom:14px;">
+                    <div class="label" style="margin-bottom:8px;">Почему такой балл</div>
+                    <div style="line-height:1.6; color:var(--text-primary);">${escapeHtml(criterion.explanation || 'Нет пояснения')}</div>
+                </div>
+                <div style="background:var(--bg-input); padding:14px; border-radius:10px; margin-bottom:14px;">
+                    <div class="label" style="margin-bottom:8px;">Формула начисления</div>
+                    <div style="line-height:1.6; color:var(--text-primary);">${escapeHtml(formula)}</div>
+                </div>
+                <div style="background:var(--bg-input); padding:14px; border-radius:10px; margin-bottom:14px;">
+                    <div class="label" style="margin-bottom:8px;">Значения и входные данные</div>
+                    <div>${formatCriterionValue(criterion.value)}</div>
+                </div>
+                <div style="background:var(--bg-input); padding:14px; border-radius:10px;">
+                    <div class="label" style="margin-bottom:8px;">Источники</div>
+                    <div style="line-height:1.6; color:var(--text-primary);">${escapeHtml(sourceIds)}</div>
+                </div>
+            `;
+            document.getElementById('criterionModal').classList.add('show');
+        }
+
+        // --- Load reference data ---
+        async function loadRefData() {
+            try {
+                const data = await apiFetchJson(API + '/api/analytics/reference-data');
+                const rSel = document.getElementById('filterRegion');
+                const dSel = document.getElementById('filterDirection');
+                (data.regions || []).forEach(r => rSel.add(new Option(r, r)));
+                (data.directions || []).forEach(d => {
+                    const short = shortenDirection(d);
+                    dSel.add(new Option(short, d));
+                });
+            } catch(e) {
+                showToast('Не удалось загрузить справочники', 'error');
+            }
+        }
+
+        // --- Load Summary ---
+        async function loadSummary() {
+            try {
+                const d = await apiFetchJson(API + '/api/analytics/summary', { headers: headers() });
+                document.getElementById('kpiTotal').textContent = d.total;
+                document.getElementById('kpiPriority').textContent = d.priority;
+                document.getElementById('kpiAvg').textContent = d.avg_score;
+                document.getElementById('kpiAmount').textContent = d.total_amount_bln;
+                document.getElementById('statTotal').textContent = d.total;
+                document.getElementById('statPriority').textContent = d.priority;
+                document.getElementById('statAvg').textContent = d.avg_score;
+                document.getElementById('statAmount').textContent = d.total_amount_bln;
+                document.getElementById('statPending').textContent = d.pending;
+                document.getElementById('statApproved').textContent = d.approved;
+                document.getElementById('statRejected').textContent = d.rejected;
+            } catch(e) {
+                showToast('Не удалось загрузить сводку', 'error');
+            }
+        }
+
+        // --- Load Applications ---
+        async function loadApps() {
+            if (appsAbortController) appsAbortController.abort();
+            appsAbortController = new AbortController();
+
+            const params = buildFiltersParams();
+            params.set('limit', String(PAGE_LIMIT));
+            params.set('offset', String(currentOffset));
+
+            try {
+                const data = await apiFetchJson(
+                    API + '/api/applications?' + params.toString(),
+                    { headers: headers(), signal: appsAbortController.signal }
+                );
+                const tbody = document.getElementById('appsBody');
+                tbody.innerHTML = '';
+                const items = data.items || [];
+                currentTotal = toNumber(data.total, 0);
+                items.forEach((a, i) => {
+                    const tierClass = a.tier === 'Приоритет' ? 'tier-priority' : a.tier === 'Рассмотреть' ? 'tier-review' : 'tier-reject';
+                    const decLabels = { pending:'⏳ Ожидает', approved:'✅ Одобрена', rejected:'❌ Отклонена', more_info:'📝 Доп. инфо' };
+                    const decClassMap = { pending: 'decision-pending', approved: 'decision-approved', rejected: 'decision-rejected', more_info: 'decision-more_info' };
+                    const decClass = decClassMap[a.decision] || 'decision-pending';
+                    const dir = shortenDirection(a.direction);
+                    const amountMln = (toNumber(a.amount) / 1e6).toFixed(2);
+                    const rank = currentOffset + i + 1;
+                    const tr = document.createElement('tr');
+                    tr.onclick = () => showDetail(a);
+                    tr.innerHTML = `
+                        <td><strong>${rank}</strong></td>
+                        <td>${escapeHtml(a.farmer_name || '—')}</td>
+                        <td style="max-width:150px; overflow:hidden; text-overflow:ellipsis;">${escapeHtml(a.region || '—')}</td>
+                        <td>${escapeHtml(dir)}</td>
+                        <td>${amountMln} млн</td>
+                        <td>${escapeHtml(a.heads ?? '—')}</td>
+                        <td><strong>${toNumber(a.composite_score).toFixed(1)}</strong></td>
+                        <td><span class="tier-badge ${tierClass}">${escapeHtml(a.tier || '—')}</span></td>
+                        <td><span class="tier-badge ${decClass}">${escapeHtml(decLabels[a.decision] || a.decision || '—')}</span></td>
+                    `;
+                    tbody.appendChild(tr);
+                });
+                document.getElementById('tableInfo').textContent =
+                    `Показано ${items.length} из ${currentTotal} заявок (сортировка: composite score)`;
+                updatePagination(currentTotal, items.length);
+            } catch(e) {
+                if (e.name !== 'AbortError') showToast('Ошибка загрузки списка заявок', 'error');
+            }
+        }
+
+        // --- Detail Panel ---
+        async function showDetail(a) {
+            const panel = document.getElementById('detailPanel');
+            const content = document.getElementById('detailContent');
+            panel.classList.add('open');
+            content.innerHTML = '<div class="spinner"></div><p class="subtitle">Загрузка деталей заявки...</p>';
+
+            try {
+                const full = await apiFetchJson(API + '/api/applications/' + a.id, { headers: headers() });
+                renderDetail(full);
+            } catch (e) {
+                renderDetail(a);
+                showToast('Не удалось загрузить полные детали заявки', 'error');
+            }
+        }
+
+        function renderDetail(a) {
+            const panel = document.getElementById('detailPanel');
+            const content = document.getElementById('detailContent');
+            const tierClass = a.tier === 'Приоритет' ? 'tier-priority' : a.tier === 'Рассмотреть' ? 'tier-review' : 'tier-reject';
+            const dir = shortenDirection(a.direction);
+            const score = toNumber(a.composite_score);
+            const amountMln = (toNumber(a.amount) / 1e6).toFixed(2);
+            const mlScore = (toNumber(a.ml_score) * 100).toFixed(1);
+
+            let shapHTML = '';
+            if (a.shap_explanations && a.shap_explanations.length) {
+                const maxAbs = Math.max(...a.shap_explanations.map(s => Math.abs(toNumber(s.shap_value))), 0.01);
+                shapHTML = a.shap_explanations.map(s => {
+                    const shapVal = toNumber(s.shap_value);
+                    const pct = Math.min(Math.abs(shapVal) / maxAbs * 45, 45);
+                    const cls = shapVal > 0 ? 'shap-bar-positive' : 'shap-bar-negative';
+                    const arrow = shapVal > 0 ? '↑' : '↓';
+                    return `<div class="shap-bar-item">
+                        <div class="shap-bar-label">${escapeHtml(s.label)}</div>
+                        <div class="shap-bar-track">
+                            <div class="shap-bar-center"></div>
+                            <div class="shap-bar-fill ${cls}" style="width:${pct}%;">${arrow} ${Math.abs(shapVal).toFixed(3)}</div>
+                        </div>
+                    </div>`;
+                }).join('');
+            }
+
+            const ruleLabels = {
+                rule_min_heads: 'Поголовье ≥ 1',
+                rule_norm_positive: 'Норматив > 0',
+                rule_amount_positive: 'Сумма > 0',
+                rule_not_extreme_amount: 'Не превышает P99',
+                rule_norm_in_range: 'Норматив в норме (±3σ)',
+            };
+            let rulesHTML = '';
+            if (a.rules) {
+                rulesHTML = Object.entries(ruleLabels).map(([k, lbl]) => {
+                    const pass = a.rules[k] === 1;
+                    return `<div class="rule-item"><span class="rule-icon">${pass ? '✅' : '❌'}</span><span class="rule-text ${pass ? 'rule-pass' : 'rule-fail'}">${lbl}</span></div>`;
+                }).join('');
+            }
+
+            let criteriaHTML = '';
+            if (a.criteria && a.criteria.length) {
+                criteriaHTML = a.criteria
+                    .filter(c => c && c.title)
+                    .map(c => {
+                        const s = toNumber((c.score_0_100 ?? (toNumber(c.score_0_1) * 100)));
+                        const pts = toNumber((c.points_0_100 ?? s));
+                        const ptsMax = toNumber((c.max_points_0_100 ?? 100));
+                        const icon = c.status === 'ok' ? '✅' : c.status === 'review' ? '⚠️' : '❌';
+                        const reason = escapeHtml(c.explanation || '');
+                        const ptsText = `${pts.toFixed(2)}/${ptsMax.toFixed(2)} балла`;
+                        const encodedCriterion = encodeURIComponent(JSON.stringify(c));
+                        return `<div class="rule-item" style="align-items:flex-start; gap:12px;">
+                            <span class="rule-icon">${icon}</span>
+                            <span class="rule-text" style="flex:1;">
+                                <div style="display:flex; align-items:flex-start; justify-content:space-between; gap:12px;">
+                                    <div>
+                                        ${escapeHtml(c.title)}: <strong>${s.toFixed(1)}</strong> · <strong>${ptsText}</strong><br/>
+                                        <small class="subtitle" style="font-size:0.78rem;">За что: ${reason}</small>
+                                    </div>
+                                    <button class="btn btn-outline btn-sm" type="button" onclick="openCriterionModal('${encodedCriterion}')" style="white-space:nowrap;">Подробнее</button>
+                                </div>
+                            </span>
+                        </div>`;
+                    })
+                    .join('');
+            }
+
+            let sourcesHTML = '';
+            if (a.sources && a.sources.length) {
+                sourcesHTML = a.sources
+                    .filter(s => s && s.url)
+                    .map(s => `<li><a href="${escapeHtml(s.url)}" target="_blank" rel="noopener noreferrer">${escapeHtml(s.title || s.url)}</a></li>`)
+                    .join('');
+            }
+
+            content.innerHTML = `
+                <h2 style="margin-bottom:4px;">${escapeHtml(a.farmer_name || ('Заявка #' + a.id))}</h2>
+                <p class="subtitle" style="font-size:0.85rem;">${escapeHtml(dir)} · ${escapeHtml(a.region || '—')}</p>
+
+                <div style="display:flex; align-items:center; gap:16px; margin:24px 0; padding:20px; background:var(--bg-input); border-radius:12px;">
+                    <div style="text-align:center;">
+                        <div style="font-size:2.5rem; font-weight:800; color:${score >= 75 ? 'var(--green)' : score >= 50 ? 'var(--yellow)' : 'var(--red)'};">
+                            ${score.toFixed(1)}
+                        </div>
+                        <div class="label" style="display: flex; align-items: center; justify-content: center; gap: 4px;">
+                            Composite Score
+                            <button onclick="toggleCalcModal()" class="btn" style="padding: 2px 6px; font-size: 0.65rem; border: 1px solid rgba(255,255,255,0.2); background: transparent; border-radius: 4px;" title="Как считается балл?">FAQ ℹ️</button>
+                        </div>
+                    </div>
+                    <div style="flex:1;">
+                        <span class="tier-badge ${tierClass}" style="font-size:1rem; padding:8px 20px;">${escapeHtml(a.tier || '—')}</span>
+                    </div>
+                </div>
+
+                <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px; margin-bottom:24px;">
+                    <div style="padding:12px; background:var(--bg-input); border-radius:8px;">
+                        <div class="label">Сумма</div>
+                        <strong>${amountMln} млн ₸</strong>
+                    </div>
+                    <div style="padding:12px; background:var(--bg-input); border-radius:8px;">
+                        <div class="label">Поголовье</div>
+                        <strong>${escapeHtml(a.heads ?? '—')} голов</strong>
+                    </div>
+                    <div style="padding:12px; background:var(--bg-input); border-radius:8px;">
+                        <div class="label">ML Score</div>
+                        <strong>${mlScore}</strong>
+                    </div>
+                    <div style="padding:12px; background:var(--bg-input); border-radius:8px;">
+                        <div class="label">Anomaly</div>
+                        <strong>${a.anomaly_clean ? 'Норма' : 'Аномалия'}</strong>
+                    </div>
+                </div>
+
+                <h3 style="margin-bottom:12px;">Объяснение AI (SHAP)</h3>
+                <div class="shap-bar-container" style="margin-bottom:24px;">${shapHTML || '<p class="subtitle">Нет данных</p>'}</div>
+
+                <h3 style="margin-bottom:12px;">Проверка правил</h3>
+                <div style="margin-bottom:24px;">${rulesHTML}</div>
+
+                <h3 style="margin-bottom:12px;">Критерии скоринга</h3>
+                <div style="margin-bottom:24px;">${criteriaHTML || '<p class="subtitle">Нет данных</p>'}</div>
+
+                <h3 style="margin-bottom:12px;">Пояснение</h3>
+                <div style="margin-bottom:24px; padding:12px; background:var(--bg-input); border-radius:8px;">
+                    ${a.explanation_source === 'llm'
+                        ? `<span style="background:#7c3aed;color:#fff;font-size:11px;padding:2px 7px;border-radius:10px;margin-right:8px;">AI</span>`
+                        : `<span style="background:#475569;color:#cbd5e1;font-size:11px;padding:2px 7px;border-radius:10px;margin-right:8px;">авто</span>`
+                    }
+                    <div style="margin-top:10px; line-height:1.7; white-space:pre-wrap;">${escapeHtml(a.explanation || 'Нет пояснения')}</div>
+                </div>
+
+                ${a.full_context_explanation ? `
+                <h3 style="margin-bottom:12px;">Развернутое NLP-пояснение</h3>
+                <div style="margin-bottom:24px; padding:14px; background:rgba(14,165,233,0.08); border:1px solid rgba(14,165,233,0.18); border-radius:10px; line-height:1.8; white-space:pre-wrap;">
+                    ${escapeHtml(a.full_context_explanation)}
+                </div>` : ''}
+
+                ${a.llm_extra_comment ? `
+                <h3 style="margin-bottom:12px;">Комментарий AI по доп. пояснению</h3>
+                <div style="margin-bottom:24px; padding:12px; background:var(--bg-input); border-radius:8px; line-height:1.7; white-space:pre-wrap;">
+                    ${escapeHtml(a.llm_extra_comment)}
+                </div>` : ''}
+
+                <h3 style="margin-bottom:12px;">Источники</h3>
+                <div style="margin-bottom:24px;">
+                    ${sourcesHTML ? `<ul style="padding-left:18px; margin:0;">${sourcesHTML}</ul>` : '<p class="subtitle">Нет источников</p>'}
+                </div>
+
+                <h3 style="margin-bottom:12px;">Экспорт отчёта</h3>
+                <div style="margin-bottom:24px; display:flex; gap:10px; flex-wrap:wrap;">
+                    <button class="btn btn-sm" style="background:#3b82f6; color:white;" onclick="exportAppReport(${a.id}, 'html')">
+                        📥 Полный отчёт для печати
+                    </button>
+                    <button class="btn btn-sm" style="background:#10b981; color:white;" onclick="exportAppReport(${a.id}, 'json')">
+                        📊 Полный JSON (для системы)
+                    </button>
+                    <button class="btn btn-sm" style="background:#8b5cf6; color:white;" onclick="sendReportEmail(${a.id})">
+                        📧 Email
+                    </button>
+                </div>
+
+                <h3 style="margin-bottom:12px;">Решение комиссии</h3>
+                <div style="padding:20px; background:var(--bg-input); border-radius:12px;">
+                    ${a.decision !== 'pending' ? `
+                        <p>Решение: <strong>${a.decision === 'approved' ? 'Одобрена' : a.decision === 'rejected' ? 'Отклонена' : 'Доп. инфо'}</strong></p>
+                        ${a.decision_note ? `<p class="subtitle mt-sm" style="font-size:0.85rem;">Комментарий: ${escapeHtml(a.decision_note)}</p>` : ''}
+                        ${a.decision_by ? `<p class="subtitle mt-sm" style="font-size:0.8rem;">Решение: ${escapeHtml(a.decision_by)}</p>` : ''}
+                    ` : `
+                        <div class="form-group mb-md">
+                            <label>Комментарий</label>
+                            <input type="text" class="form-input" id="decisionNote" placeholder="Необязательно">
+                        </div>
+                        <div style="display:flex; gap:8px; flex-wrap:wrap;">
+                            <button class="btn btn-success btn-sm" onclick="makeDecision(${a.id}, 'approved')">Одобрить</button>
+                            <button class="btn btn-danger btn-sm" onclick="makeDecision(${a.id}, 'rejected')">Отклонить</button>
+                            <button class="btn btn-warning btn-sm" onclick="makeDecision(${a.id}, 'more_info')">Доп. данные</button>
+                        </div>
+                    `}
+                </div>
+            `;
+            panel.classList.add('open');
+        }
+
+        function closeDetail() {
+            document.getElementById('detailPanel').classList.remove('open');
+        }
+
+        async function makeDecision(appId, decision) {
+            const note = document.getElementById('decisionNote')?.value || '';
+            try {
+                const res = await fetch(API + '/api/applications/' + appId + '/decision', {
+                    method: 'PUT', headers: headers(),
+                    body: JSON.stringify({ decision, note }),
+                });
+                if (!res.ok) { const d = await res.json(); throw new Error(d.detail || 'Failed'); }
+                showToast(decision === 'approved' ? 'Заявка одобрена!' : decision === 'rejected' ? 'Заявка отклонена' : 'Запрос доп. данных отправлен');
+                closeDetail();
+                await loadApps();
+                await loadSummary();
+            } catch(e) { showToast(e.message, 'error'); }
+        }
+
+        document.getElementById('prevPageBtn').addEventListener('click', async () => {
+            if (currentOffset <= 0) return;
+            currentOffset = Math.max(0, currentOffset - PAGE_LIMIT);
+            await loadApps();
+        });
+        document.getElementById('nextPageBtn').addEventListener('click', async () => {
+            if (currentOffset + PAGE_LIMIT >= currentTotal) return;
+            currentOffset += PAGE_LIMIT;
+            await loadApps();
+        });
+
+        // --- Export Functions ---
+        async function exportAppReport(appId, format) {
+            try {
+                if (format === 'html') {
+                    const url = `${API}/api/applications/${appId}/export/html`;
+                    const res = await fetch(url, { headers: headers() });
+                    if (!res.ok) {
+                        const d = await res.json().catch(() => ({}));
+                        throw new Error(d.detail || 'Не удалось сформировать HTML-отчёт');
+                    }
+                    const html = await res.text();
+                    const blob = new Blob([html], { type: 'text/html;charset=utf-8' });
+                    const reportUrl = URL.createObjectURL(blob);
+                    window.open(reportUrl, '_blank');
+                    showToast('Отчёт открывается. Печать: Ctrl+P', 'info');
+                } else if (format === 'json') {
+                    const url = `${API}/api/applications/${appId}/export/json`;
+                    const res = await fetch(url, { headers: headers() });
+                    if (!res.ok) {
+                        const d = await res.json().catch(() => ({}));
+                        throw new Error(d.detail || 'Не удалось сформировать JSON-отчёт');
+                    }
+                    const json = await res.json();
+                    const dataStr = JSON.stringify(json.data, null, 2);
+                    const blob = new Blob([dataStr], { type: 'application/json' });
+                    const link = document.createElement('a');
+                    link.href = URL.createObjectURL(blob);
+                    link.download = `agrosubsidia_app_${appId}.json`;
+                    link.click();
+                    showToast('JSON скачан', 'success');
+                }
+            } catch(e) {
+                showToast('Ошибка: ' + e.message, 'error');
+            }
+        }
+
+        async function sendReportEmail(appId) {
+            try {
+                const res = await fetch(`${API}/api/applications/${appId}/export/send-to-email`, {
+                    method: 'POST', headers: headers(),
+                });
+                const data = await res.json();
+                showToast('Отчёт будет отправлен на email', 'success');
+            } catch(e) {
+                showToast('Ошибка: ' + e.message, 'error');
+            }
+        }
+
+        function showToast(msg, type = 'info') {
+            const div = document.createElement('div');
+            div.textContent = msg;
+            div.style.cssText = `
+                position: fixed; top: 20px; right: 20px; z-index: 9999;
+                padding: 15px 20px; border-radius: 8px; font-size: 14px; color: white;
+                background: ${type === 'success' ? '#10b981' : type === 'error' ? '#ef4444' : '#3b82f6'};
+                box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            `;
+            document.body.appendChild(div);
+            setTimeout(() => div.remove(), 3000);
+        }
+
+        // --- Init ---
+        async function init() {
+            await loadRefData();
+            await Promise.all([loadSummary(), loadApps()]);
+        }
+        init();
+    </script>
+</body>
+</html>

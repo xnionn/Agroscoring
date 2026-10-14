@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AgrIscore — Аналитическая система распределения субсидий МСХ РК</title>
+    <meta name="description" content="Система автоматизированного скоринга и прозрачного распределения сельскохозяйственных субсидий в Республике Казахстан на основе анализа данных.">
+    <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+    <!-- NAVBAR -->
+    <nav class="navbar">
+        <a href="/" class="navbar-brand"><span><span class="brand-accent">A</span>gr<span class="brand-accent">I</span>score</span></a>
+        <div class="navbar-links" id="navLinks">
+            <a href="/auth">Войти</a>
+        </div>
+    </nav>
+
+    <!-- HERO -->
+    <section class="hero">
+        <!-- Geometric shapes background -->
+        <div class="hero-shapes">
+            <div class="shape s1"><div class="shape__float"><div class="shape__pill"></div></div></div>
+            <div class="shape s2"><div class="shape__float"><div class="shape__pill"></div></div></div>
+            <div class="shape s3"><div class="shape__float"><div class="shape__pill"></div></div></div>
+            <div class="shape s4"><div class="shape__float"><div class="shape__pill"></div></div></div>
+            <div class="shape s5"><div class="shape__float"><div class="shape__pill"></div></div></div>
+        </div>
+
+        <div class="container">
+            <div class="hero-content">
+                <div class="hero-badge animate-in">
+                     Прототип · Decentrathon 5.0
+                </div>
+                <h1 class="hero-title animate-in delay-1">
+                    <span class="line-white">Справедливое распределение</span><br>
+                    <span class="line-gradient">субсидий с помощью ИИ</span>
+                </h1>
+                <p class="subtitle animate-in delay-2">
+                    AI-скоринг заявок на субсидии МСХ РК: анализ данных, проверка нормативов и прозрачное обоснование для комиссии.
+                </p>
+                <div class="hero-actions animate-in delay-3">
+                    <a href="/auth" class="btn btn-primary btn-cta">
+                        <span class="btn-cta-text">Войти</span>
+                        <span class="btn-cta-icon"><svg viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"/></svg></span>
+                    </a>
+                    <button class="btn btn-primary btn-cta" onclick="document.getElementById('faqModal').classList.add('show')" style="background: linear-gradient(135deg, rgba(255,255,255,0.08), rgba(255,255,255,0.04)); box-shadow: 0 4px 15px rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.12);">
+                        <span class="btn-cta-text">FAQ / Info</span>
+                        <span class="btn-cta-icon" style="background: rgba(255,255,255,0.1);"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg></span>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- FAQ MODAL -->
+    <div class="modal" id="faqModal" onclick="if(event.target===this)this.classList.remove('show')">
+        <!-- Geometric shapes in modal bg -->
+        <div style="position:absolute;inset:0;overflow:hidden;pointer-events:none;">
+            <div class="shape s1"><div class="shape__float"><div class="shape__pill"></div></div></div>
+            <div class="shape s2"><div class="shape__float"><div class="shape__pill"></div></div></div>
+            <div class="shape s3"><div class="shape__float"><div class="shape__pill"></div></div></div>
+            <div class="shape s4"><div class="shape__float"><div class="shape__pill"></div></div></div>
+            <div class="shape s5"><div class="shape__float"><div class="shape__pill"></div></div></div>
+        </div>
+        <div class="modal-content" style="max-width: 720px;">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 24px;">
+                <h2 style="margin:0; font-size:1.3rem;">ℹ️ О системе & FAQ</h2>
+                <button class="btn btn-outline btn-sm" onclick="document.getElementById('faqModal').classList.remove('show')">✕</button>
+            </div>
+
+            <div style="display:flex; flex-direction:column; gap: 28px;">
+                <!-- About -->
+                <div>
+                    <h3 style="margin-bottom: 12px; color: var(--accent);">Что такое AgrIscore?</h3>
+                    <p class="subtitle" style="font-size: 0.95rem;">
+                        AgrIscore — аналитическая система для прозрачного распределения сельскохозяйственных субсидий МСХ РК. Система автоматизирует первичную оценку заявок, анализируя ретроспективные данные, проверяя нормативы и выявляя аномалии.
+                    </p>
+                </div>
+
+                <!-- Architecture -->
+                <div>
+                    <h3 style="margin-bottom: 12px; color: var(--accent);">Как работает оценка?</h3>
+                    <div style="display:flex; flex-direction:column; gap: 12px;">
+                        <div style="display:flex; gap:12px; align-items:start;">
+                            <span style="font-size:1.5rem;">📝</span>
+                            <div><strong>1. Приём данных</strong><br><span class="subtitle" style="font-size:0.9rem;">Данные фермы (направление, поголовье, регион) фиксируются и валидируются.</span></div>
+                        </div>
+                        <div style="display:flex; gap:12px; align-items:start;">
+                            <span style="font-size:1.5rem;">🔍</span>
+                            <div><strong>2. Многофакторный анализ</strong><br><span class="subtitle" style="font-size:0.9rem;">ML + детерминированные правила оценивают заявку по 18 параметрам.</span></div>
+                        </div>
+                        <div style="display:flex; gap:12px; align-items:start;">
+                            <span style="font-size:1.5rem;">⚖️</span>
+                            <div><strong>3. Контроль комиссией</strong><br><span class="subtitle" style="font-size:0.9rem;">Комиссия получает ранжированный список с SHAP-объяснениями каждого фактора.</span></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Stats -->
+                <div style="display:grid; grid-template-columns: repeat(4, 1fr); gap: 12px;">
+                    <div style="text-align:center; padding:16px; background:var(--glass); border-radius:12px; border:1px solid var(--glass-border);">
+                        <div style="font-size:1.3rem; font-weight:700;">36 651</div>
+                        <div class="subtitle" style="font-size:0.75rem;">Заявок</div>
+                    </div>
+                    <div style="text-align:center; padding:16px; background:var(--glass); border-radius:12px; border:1px solid var(--glass-border);">
+                        <div style="font-size:1.3rem; font-weight:700;">0.898</div>
+                        <div class="subtitle" style="font-size:0.75rem;">ROC-AUC</div>
+                    </div>
+                    <div style="text-align:center; padding:16px; background:var(--glass); border-radius:12px; border:1px solid var(--glass-border);">
+                        <div style="font-size:1.3rem; font-weight:700;">18</div>
+                        <div class="subtitle" style="font-size:0.75rem;">Регионов</div>
+                    </div>
+                    <div style="text-align:center; padding:16px; background:var(--glass); border-radius:12px; border:1px solid var(--glass-border);">
+                        <div style="font-size:1.3rem; font-weight:700;">139 млрд</div>
+                        <div class="subtitle" style="font-size:0.75rem;">Тенге</div>
+                    </div>
+                </div>
+
+                <!-- FIFO vs Merit -->
+                <div>
+                    <h3 style="margin-bottom: 12px; color: var(--accent);">FIFO vs Merit-подход</h3>
+                    <div style="display:grid; grid-template-columns: 1fr 1fr; gap:12px;">
+                        <div style="padding:16px; background:var(--red-bg); border-radius:12px; border:1px solid rgba(239,68,68,0.2);">
+                            <strong style="color:var(--red);">FIFO (текущий)</strong>
+                            <p class="subtitle" style="font-size:0.85rem; margin-top:6px;">«Кто первый — тому субсидия». Не учитывает качество заявки.</p>
+                            <div style="margin-top:8px; font-weight:600;">Ср. балл топ-10: 91.9</div>
+                        </div>
+                        <div style="padding:16px; background:var(--green-bg); border-radius:12px; border:1px solid rgba(16,185,129,0.2);">
+                            <strong style="color:var(--green);">AgrIscore (Merit)</strong>
+                            <p class="subtitle" style="font-size:0.85rem; margin-top:6px;">Комплексная оценка и приоритизация обоснованных заявок.</p>
+                            <div style="margin-top:8px; font-weight:600;">Ср. скор топ-10: 100.0</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- FAQ -->
+                <div>
+                    <h3 style="margin-bottom: 12px; color: var(--accent);">Часто задаваемые вопросы</h3>
+                    <div style="display:flex; flex-direction:column; gap:12px;">
+                        <details style="background:var(--glass); border:1px solid var(--glass-border); border-radius:10px; padding:14px;">
+                            <summary style="cursor:pointer; font-weight:600;">Кто может пользоваться системой?</summary>
+                            <p class="subtitle" style="font-size:0.9rem; margin-top:8px;">Фермеры подают заявки через портал. Члены комиссии МСХ РК рассматривают и принимают решения в кабинете комиссии.</p>
+                        </details>
+                        <details style="background:var(--glass); border:1px solid var(--glass-border); border-radius:10px; padding:14px;">
+                            <summary style="cursor:pointer; font-weight:600;">Как рассчитывается скор заявки?</summary>
+                            <p class="subtitle" style="font-size:0.9rem; margin-top:8px;">Композитный скор = ML-модель (XGBoost, обученная на 36 651 решении) × проверка по 5 детерминированным правилам × фильтр аномалий (Isolation Forest).</p>
+                        </details>
+                        <details style="background:var(--glass); border:1px solid var(--glass-border); border-radius:10px; padding:14px;">
+                            <summary style="cursor:pointer; font-weight:600;">Система принимает окончательное решение?</summary>
+                            <p class="subtitle" style="font-size:0.9rem; margin-top:8px;">Нет. Система предоставляет рекомендации и прозрачное объяснение факторов. Итоговое решение всегда принимает комиссия.</p>
+                        </details>
+                        <details style="background:var(--glass); border:1px solid var(--glass-border); border-radius:10px; padding:14px;">
+                            <summary style="cursor:pointer; font-weight:600;">Какие данные нужны для подачи заявки?</summary>
+                            <p class="subtitle" style="font-size:0.9rem; margin-top:8px;">Регион, направление животноводства, поголовье, запрашиваемая сумма и норматив субсидии.</p>
+                        </details>
+                        <details style="background:var(--glass); border:1px solid var(--glass-border); border-radius:10px; padding:14px;">
+                            <summary style="cursor:pointer; font-weight:600;">Это финальный продукт?</summary>
+                            <p class="subtitle" style="font-size:0.9rem; margin-top:8px;">Нет, это индустриальный прототип, разработанный в рамках Decentrathon 5.0. Демонстрирует концепцию data-driven распределения субсидий.</p>
+                        </details>
+                    </div>
+                </div>
+            </div>
+
+            <div style="margin-top:24px; text-align:center;">
+                <p class="subtitle" style="font-size:0.8rem;">AgrIscore · Прототип · 2026</p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Navbar scroll effect
+        window.addEventListener('scroll', function() {
+            document.querySelector('.navbar').classList.toggle('scrolled', window.scrollY > 20);
+        });
+
+        // Check if logged in and update nav
+        const token = localStorage.getItem('token');
+        const user = JSON.parse(localStorage.getItem('user') || 'null');
+        if (token && user) {
+            const nav = document.getElementById('navLinks');
+            if (user.role === 'farmer') {
+                nav.innerHTML = `
+                    <span class="navbar-user">👤 ${user.full_name}</span>
+                    <a href="/portal">Мой портал</a>
+                    <button onclick="logout()">Выйти</button>
+                `;
+            } else {
+                nav.innerHTML = `
+                    <span class="navbar-user">👤 ${user.full_name}</span>
+                    <a href="/dashboard">Дашборд</a>
+                    <button onclick="logout()">Выйти</button>
+                `;
+            }
+        }
+        function logout() {
+            localStorage.removeItem('token');
+            localStorage.removeItem('user');
+            window.location.href = '/';
+        }
+    </script>
+</body>
+</html>
